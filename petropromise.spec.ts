@@ -118,6 +118,22 @@ describe('.allSettled', () => {
   });
 });
 
+describe('.race', () => {
+  it('returns first settled promise on race', () => {
+    return PetroPromise.race([
+      settledPromise({ value: 'bread' }),
+      settledPromise({ value: 'soup' }),
+    ]).then((v) => expect(v).toEqual('bread'));
+  });
+
+  it('returns first settled promise on race with failing promises', () => {
+    return PetroPromise.race([
+      settledPromise({ fail: true, value: 'bread' }),
+      settledPromise({ fail: true, value: 'soup' }),
+    ]).catch((v) => expect(v).toEqual('bread'));
+  });
+});
+
 function settledPromise({
   value = DEFAULT_VALUE,
   fail = false,
