@@ -6,6 +6,14 @@ const enum State {
   PENDING = 'pending',
 }
 
+class UncaughtPromiseError extends Error {
+  constructor(error: any) {
+    super(error)
+
+    this.stack = `(in promise) ${error.stack}`
+  }
+}
+
 class PetroPromise {
   #state = State.PENDING;
   #value: any;
@@ -55,6 +63,10 @@ class PetroPromise {
         value.then(this.#onSuccessBind, this.#onFailBind);
         return;
       }
+
+      if (this.#catchCallbacks.length === 0) {
+          throw new UncaughtPromiseError(value);
+      };
 
       this.#state = State.REJECTED;
       this.#value = value;
@@ -108,6 +120,15 @@ class PetroPromise {
       }
     );
   }
+
+  static resolve (value: any){
+    return new PetroPromise((resolve) => resolve(value));
+  };
+
+  static reject (value: any){
+    return new PetroPromise((resolve, reject) => reject(value));
+  };
+
 }
 
 export default PetroPromise;
