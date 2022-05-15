@@ -1,0 +1,14 @@
+{
+  "name": "petro-promises",
+  "version": "1.0.0.",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.5.1",
+    "jest": "^28.1.0",
+    "typescript": "^4.6.4"
+  }
+}
