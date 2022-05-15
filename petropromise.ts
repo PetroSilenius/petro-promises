@@ -8,9 +8,9 @@ const enum State {
 
 class UncaughtPromiseError extends Error {
   constructor(error: any) {
-    super(error)
+    super(error);
 
-    this.stack = `(in promise) ${error.stack}`
+    this.stack = `(in promise) ${error.stack}`;
   }
 }
 
@@ -65,8 +65,8 @@ class PetroPromise {
       }
 
       if (this.#catchCallbacks.length === 0) {
-          throw new UncaughtPromiseError(value);
-      };
+        throw new UncaughtPromiseError(value);
+      }
 
       this.#state = State.REJECTED;
       this.#value = value;
@@ -121,14 +121,34 @@ class PetroPromise {
     );
   }
 
-  static resolve (value: any){
+  static resolve(value: any) {
     return new PetroPromise((resolve) => resolve(value));
-  };
+  }
 
-  static reject (value: any){
+  static reject(value: any) {
     return new PetroPromise((resolve, reject) => reject(value));
-  };
+  }
 
+  static all(promises: PetroPromise[]) {
+    return new PetroPromise((resolve, reject) => {
+      let results: any[] = [];
+
+      promises.forEach((promise, index) => {
+        promise.then(
+          (value) => {
+            results[index] = value;
+
+            if (results.length === promises.length) {
+              resolve(results);
+            }
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      });
+    });
+  }
 }
 
 export default PetroPromise;
