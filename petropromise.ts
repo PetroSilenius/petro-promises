@@ -1,4 +1,4 @@
-type Callback = (data: any, err?: Error | any) => void;
+type Callback = (data?: any, err?: Error | any) => void;
 
 const enum State {
   FULFILLED = 'fulfilled',
@@ -33,31 +33,80 @@ class PetroPromise {
   }
 
   #onSuccess(value: any) {
-    if (this.#state !== State.PENDING) return;
-    this.#state = State.FULFILLED;
-    this.#value = value;
-    this.#runCallbacks();
+    queueMicrotask(() => {
+      if (this.#state !== State.PENDING) return;
+
+      if (value instanceof PetroPromise) {
+        value.then(this.#onSuccessBind, this.#onFailBind);
+        return;
+      }
+
+      this.#state = State.FULFILLED;
+      this.#value = value;
+      this.#runCallbacks();
+    });
   }
 
   #onFail(value: any) {
-    if (this.#state !== State.PENDING) return;
-    this.#state = State.REJECTED;
-    this.#value = value;
-    this.#runCallbacks();
+    queueMicrotask(() => {
+      if (this.#state !== State.PENDING) return;
+
+      if (value instanceof PetroPromise) {
+        value.then(this.#onSuccessBind, this.#onFailBind);
+        return;
+      }
+
+      this.#state = State.REJECTED;
+      this.#value = value;
+      this.#runCallbacks();
+    });
   }
 
   then(thenCallback?: Callback, catchCallback?: Callback) {
-    if (thenCallback) this.#thenCallbacks.push(thenCallback);
-    if (catchCallback) this.#catchCallbacks.push(catchCallback);
-    this.#runCallbacks();
+    return new PetroPromise((resolve, reject) => {
+      this.#thenCallbacks.push((result) => {
+        try {
+          if (thenCallback) {
+            resolve(thenCallback(result));
+          } else {
+            resolve(result);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      this.#catchCallbacks.push((result) => {
+        try {
+          if (catchCallback) {
+            resolve(catchCallback(result));
+          } else {
+            reject(result);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      this.#runCallbacks();
+    });
   }
 
   catch(callback: Callback) {
-    this.then(undefined, callback);
+    return this.then(undefined, callback);
   }
 
   finally(callback: Callback) {
-    this.then(callback, callback);
+    return this.then(
+      (result) => {
+        callback();
+        return result;
+      },
+      (result) => {
+        callback();
+        throw result;
+      }
+    );
   }
 }
 
