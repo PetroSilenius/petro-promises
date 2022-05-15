@@ -134,6 +134,22 @@ describe('.race', () => {
   });
 });
 
+describe('.any', () => {
+  it('returns first fullfilled promise', () => {
+    return PetroPromise.any([
+      settledPromise({ value: 'bread' }),
+      settledPromise({ value: 'soup' }),
+    ]).then((v: any) => expect(v).toEqual('bread'));
+  });
+
+  it('returns errors for failed promises', () => {
+    return PetroPromise.any([
+      settledPromise({ fail: true, value: 'bread' }),
+      settledPromise({ fail: true, value: 'soup' }),
+    ]).catch((e: { errors: any }) => expect(e.errors).toEqual(['bread', 'soup']));
+  });
+});
+
 function settledPromise({
   value = DEFAULT_VALUE,
   fail = false,
