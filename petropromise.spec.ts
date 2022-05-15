@@ -52,6 +52,34 @@ describe('.catch', () => {
   });
 });
 
+describe('.finally', () => {
+  it('returns default passed value', () => {
+    const checkFunc = () => (v: any) => expect(v).toBeUndefined();
+    const successPromise = settledPromise().finally(checkFunc);
+    const failPromise = settledPromise({ fail: true }).finally(checkFunc);
+    return Promise.allSettled([successPromise, failPromise]);
+  });
+
+  it('returns value with multiple finallys for same promise', () => {
+    const checkFunc = () => (v: any) => expect(v).toBeUndefined();
+    const mainPromise = settledPromise();
+    const promise1 = mainPromise.finally(checkFunc);
+    const promise2 = mainPromise.finally(checkFunc);
+    return Promise.allSettled([promise1, promise2]);
+  });
+
+  it('returns value with chaining', () => {
+    const checkFunc = () => (v: any) => expect(v).toBeUndefined();
+    const successPromise = settledPromise()
+      .then((v) => v)
+      .finally(checkFunc);
+    const failPromise = settledPromise({ fail: true })
+      .then((v) => v)
+      .finally(checkFunc);
+    return Promise.allSettled([successPromise, failPromise]);
+  });
+});
+
 
 function settledPromise({
   value = DEFAULT_VALUE,
