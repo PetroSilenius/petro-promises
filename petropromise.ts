@@ -19,18 +19,18 @@ class PetroPromise {
   #value: any;
   #thenCallbacks: Callback[] = [];
   #catchCallbacks: Callback[] = [];
-  #onSuccessBind = this.#onSuccess.bind(this);
-  #onFailBind = this.#onFail.bind(this);
+  #onSuccessBind = this.onSuccess.bind(this);
+  #onFailBind = this.onFail.bind(this);
 
   constructor(callback: Callback) {
     try {
       callback(this.#onSuccessBind, this.#onFailBind);
     } catch (e) {
-      this.#onFail(e);
+      this.onFail(e);
     }
   }
 
-  #runCallbacks() {
+  private runCallbacks() {
     if (this.#state === State.FULFILLED) {
       this.#thenCallbacks.forEach((callback) => callback(this.#value));
       this.#thenCallbacks = [];
@@ -40,7 +40,7 @@ class PetroPromise {
     }
   }
 
-  #onSuccess(value: any) {
+   private onSuccess(value: any) {
     queueMicrotask(() => {
       if (this.#state !== State.PENDING) return;
 
@@ -51,11 +51,11 @@ class PetroPromise {
 
       this.#state = State.FULFILLED;
       this.#value = value;
-      this.#runCallbacks();
+      this.runCallbacks();
     });
   }
 
-  #onFail(value: any) {
+  private onFail(value: any) {
     queueMicrotask(() => {
       if (this.#state !== State.PENDING) return;
 
@@ -70,7 +70,7 @@ class PetroPromise {
 
       this.#state = State.REJECTED;
       this.#value = value;
-      this.#runCallbacks();
+      this.runCallbacks();
     });
   }
 
@@ -100,7 +100,7 @@ class PetroPromise {
         }
       });
 
-      this.#runCallbacks();
+      this.runCallbacks();
     });
   }
 
@@ -122,11 +122,11 @@ class PetroPromise {
   }
 
   static resolve(value: any) {
-    return new PetroPromise((resolve) => resolve(value));
+    return new Promise((resolve) => resolve(value));
   }
 
   static reject(value: any) {
-    return new PetroPromise((resolve, reject) => reject(value));
+    return new Promise((resolve, reject) => reject(value));
   }
 
   static all(promises: PetroPromise[]) {
@@ -146,6 +146,27 @@ class PetroPromise {
             reject(error);
           }
         );
+      });
+    });
+  }
+
+  static allSettled(promises: PetroPromise[]) {
+    return new PetroPromise((resolve, reject) => {
+      let results: any[] = [];
+
+      promises.forEach((promise, index) => {
+        promise.then(
+          (value) => {
+            results[index] = {status: State.FULFILLED, value};
+          }
+        ).catch( (error) => {
+            results[index] = {status: State.REJECTED, value: error};
+        }
+        ).finally(() => {
+            if (results.length === promises.length) {
+              resolve(results);
+            }
+        });
       });
     });
   }
