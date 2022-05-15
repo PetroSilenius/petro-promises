@@ -80,6 +80,18 @@ describe('.finally', () => {
   });
 });
 
+describe('.resolve', () => {
+  it('resolves promise with passed value', () => {
+    return PetroPromise.resolve(DEFAULT_VALUE).then((v) => expect(v).toEqual(DEFAULT_VALUE));
+  });
+});
+
+describe('.reject', () => {
+  it('rejects promise with passed value', () => {
+    return PetroPromise.reject(DEFAULT_VALUE).catch((v) => expect(v).toEqual(DEFAULT_VALUE));
+  });
+});
+
 
 function settledPromise({
   value = DEFAULT_VALUE,
