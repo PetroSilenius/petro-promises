@@ -92,6 +92,31 @@ describe('.reject', () => {
   });
 });
 
+describe('.all', () => {
+  it('resolves all promises with success', () => {
+    return PetroPromise.all([
+      settledPromise({ value: 'soup' }),
+      settledPromise({ value: 'bread' }),
+    ]).then((v) => expect(v).toEqual(['soup', 'bread']));
+  });
+
+  it('resolves all promises with one fail', () => {
+    return PetroPromise.all([settledPromise(), settledPromise({ fail: true })]).catch((v) =>
+      expect(v).toEqual(DEFAULT_VALUE)
+    );
+  });
+});
+
+describe('.allSettled', () => {
+  it('returns all promises on allSettled', () => {
+    return PetroPromise.allSettled([settledPromise(), settledPromise({ fail: true })]).then((v) =>
+      expect(v).toEqual([
+        { status: 'fulfilled', value: DEFAULT_VALUE },
+        { status: 'rejected', reason: DEFAULT_VALUE },
+      ])
+    );
+  });
+});
 
 function settledPromise({
   value = DEFAULT_VALUE,
