@@ -40,7 +40,7 @@ class PetroPromise {
     }
   }
 
-   private onSuccess(value: any) {
+  private onSuccess(value: any) {
     queueMicrotask(() => {
       if (this.#state !== State.PENDING) return;
 
@@ -155,17 +155,40 @@ class PetroPromise {
       let results: any[] = [];
 
       promises.forEach((promise, index) => {
-        promise.then(
-          (value) => {
-            results[index] = {status: State.FULFILLED, value};
-          }
-        ).catch( (error) => {
-            results[index] = {status: State.REJECTED, value: error};
-        }
-        ).finally(() => {
+        promise
+          .then((value) => {
+            results[index] = { status: State.FULFILLED, value };
+          })
+          .catch((error) => {
+            results[index] = { status: State.REJECTED, value: error };
+          })
+          .finally(() => {
             if (results.length === promises.length) {
               resolve(results);
             }
+          });
+      });
+    });
+  }
+
+  static race(promises: PetroPromise[]) {
+    return new PetroPromise((resolve, reject) => {
+      promises.forEach((promise) => {
+        promise.then(resolve).catch(reject);
+      });
+    });
+  }
+
+  static any(promises: PetroPromise[]) {
+    let errors: any[] = [];
+    return new PetroPromise((resolve, reject) => {
+      promises.forEach((promise, index) => {
+        promise.then(resolve).catch((value) => {
+          errors[index] = value;
+
+          if (errors.length === promises.length) {
+            reject(new AggregateError(errors, 'All promises rejected'));
+          }
         });
       });
     });
