@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "test": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
