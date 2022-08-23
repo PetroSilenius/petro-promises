@@ -1,7 +1,5 @@
 # PetroPromises
 
-A simple recreation of Promises to get a better grasp of them. Definitely
-
 This is a simple recreation of Javascript `Promises` to get a better grasp of them. The implementation is heavily inspired by Web Dev Simplifieds [video on How To Create Your Own Implementation Of JavaScript Promises
 ](https://www.youtube.com/watch?v=1l4wHWQCCIc).
 
