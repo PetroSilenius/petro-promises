@@ -2,6 +2,15 @@ import PetroPromise from './petropromise';
 
 const DEFAULT_VALUE = 'default value';
 
+function settledPromise({
+  value = DEFAULT_VALUE,
+  fail = false,
+}: { value?: any; fail?: boolean } = {}) {
+  return new PetroPromise((resolve, reject) => {
+    fail ? reject(value) : resolve(value);
+  });
+}
+
 describe('.then', () => {
   it('returns default passed value', () => {
     settledPromise().then((v) => expect(v).toEqual(DEFAULT_VALUE));
@@ -146,12 +155,3 @@ describe('.any', () => {
     ]).catch((e: { errors: any }) => expect(e.errors).toEqual(['bread', 'soup']));
   });
 });
-
-function settledPromise({
-  value = DEFAULT_VALUE,
-  fail = false,
-}: { value?: any; fail?: boolean } = {}) {
-  return new PetroPromise((resolve, reject) => {
-    fail ? reject(value) : resolve(value);
-  });
-}
