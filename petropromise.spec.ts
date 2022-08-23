@@ -1,4 +1,5 @@
 import PetroPromise from './petropromise';
+// const PetroPromise = Promise;
 
 const DEFAULT_VALUE = 'default value';
 
