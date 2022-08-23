@@ -1,4 +1,4 @@
-type Callback = (data?: any, err?: Error | any) => void;
+type Callback<T = any> = (data?: T, err?: Error | T) => void;
 
 const enum State {
   FULFILLED = 'fulfilled',
@@ -14,18 +14,18 @@ class UncaughtPromiseError extends Error {
   }
 }
 
-class PetroPromise {
+class PetroPromise<T = any> {
   #state = State.PENDING;
-  #value: any;
-  #thenCallbacks: Callback[] = [];
-  #catchCallbacks: Callback[] = [];
+  #value: T;
+  #thenCallbacks: Callback<T>[] = [];
+  #catchCallbacks: Callback<T>[] = [];
   #onSuccessBind = this.onSuccess.bind(this);
   #onFailBind = this.onFail.bind(this);
 
   constructor(callback: Callback) {
     try {
       callback(this.#onSuccessBind, this.#onFailBind);
-    } catch (e) {
+    } catch (e: any) {
       this.onFail(e);
     }
   }
@@ -40,7 +40,7 @@ class PetroPromise {
     }
   }
 
-  private onSuccess(value: any) {
+  private onSuccess(value: T) {
     queueMicrotask(() => {
       if (this.#state !== State.PENDING) return;
 
@@ -55,7 +55,7 @@ class PetroPromise {
     });
   }
 
-  private onFail(value: any) {
+  private onFail(value: T) {
     queueMicrotask(() => {
       if (this.#state !== State.PENDING) return;
 
@@ -74,7 +74,7 @@ class PetroPromise {
     });
   }
 
-  then(thenCallback?: Callback, catchCallback?: Callback) {
+  then(thenCallback?: Callback<T>, catchCallback?: Callback<T>) {
     return new PetroPromise((resolve, reject) => {
       this.#thenCallbacks.push((result) => {
         try {
@@ -104,11 +104,11 @@ class PetroPromise {
     });
   }
 
-  catch(callback: Callback) {
+  catch(callback: Callback<T>) {
     return this.then(undefined, callback);
   }
 
-  finally(callback: Callback) {
+  finally(callback: Callback<T>) {
     return this.then(
       (result) => {
         callback();
@@ -131,7 +131,7 @@ class PetroPromise {
 
   static all(promises: PetroPromise[]) {
     return new PetroPromise((resolve, reject) => {
-      let results: any[] = [];
+      let results: PetroPromise[] = [];
 
       promises.forEach((promise, index) => {
         promise.then(
@@ -152,7 +152,13 @@ class PetroPromise {
 
   static allSettled(promises: PetroPromise[]) {
     return new PetroPromise((resolve, reject) => {
-      let results: any[] = [];
+      type Result = {
+        status: State;
+        value?: any;
+        reason?: any;
+      };
+
+      let results: Result[] = [];
 
       promises.forEach((promise, index) => {
         promise
@@ -180,7 +186,7 @@ class PetroPromise {
   }
 
   static any(promises: PetroPromise[]) {
-    let errors: any[] = [];
+    let errors: Error[] = [];
     return new PetroPromise((resolve, reject) => {
       promises.forEach((promise, index) => {
         promise.then(resolve).catch((value) => {
