@@ -160,7 +160,7 @@ class PetroPromise {
             results[index] = { status: State.FULFILLED, value };
           })
           .catch((error) => {
-            results[index] = { status: State.REJECTED, value: error };
+            results[index] = { status: State.REJECTED, reason: error };
           })
           .finally(() => {
             if (results.length === promises.length) {
