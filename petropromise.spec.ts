@@ -1,10 +1,10 @@
-const PetroPromise = Promise;
+import PetroPromise from './petropromise';
 
 const DEFAULT_VALUE = 'default value';
 
 describe('.then', () => {
   it('returns default passed value', () => {
-    return settledPromise().then((v) => expect(v).toEqual(DEFAULT_VALUE));
+    settledPromise().then((v) => expect(v).toEqual(DEFAULT_VALUE));
   });
 
   it('returns value with multiple thens for same promise', () => {
@@ -24,7 +24,7 @@ describe('.then', () => {
   });
 
   it('returns value with chaining', () => {
-    return settledPromise({ value: 5 })
+    settledPromise({ value: 5 })
       .then((v) => v * 3)
       .then((v) => expect(v).toEqual(15));
   });
@@ -32,7 +32,7 @@ describe('.then', () => {
 
 describe('.catch', () => {
   it('returns default passed value', () => {
-    return settledPromise({ fail: true }).catch((v) => expect(v).toEqual(DEFAULT_VALUE));
+    settledPromise({ fail: true }).catch((v) => expect(v).toEqual(DEFAULT_VALUE));
   });
 
   it('returns value with multiple catches for same promise', () => {
@@ -44,7 +44,7 @@ describe('.catch', () => {
   });
 
   it('returns value with chaining', () => {
-    return settledPromise({ value: 5 })
+    settledPromise({ value: 5 })
       .then((v) => {
         throw v * 3;
       })
@@ -94,14 +94,13 @@ describe('.reject', () => {
 
 describe('.all', () => {
   it('resolves all promises with success', () => {
-    return PetroPromise.all([
-      settledPromise({ value: 'soup' }),
-      settledPromise({ value: 'bread' }),
-    ]).then((v) => expect(v).toEqual(['soup', 'bread']));
+    PetroPromise.all([settledPromise({ value: 'soup' }), settledPromise({ value: 'bread' })]).then(
+      (v) => expect(v).toEqual(['soup', 'bread'])
+    );
   });
 
   it('resolves all promises with one fail', () => {
-    return PetroPromise.all([settledPromise(), settledPromise({ fail: true })]).catch((v) =>
+    PetroPromise.all([settledPromise(), settledPromise({ fail: true })]).catch((v) =>
       expect(v).toEqual(DEFAULT_VALUE)
     );
   });
@@ -109,7 +108,7 @@ describe('.all', () => {
 
 describe('.allSettled', () => {
   it('returns all promises on allSettled', () => {
-    return PetroPromise.allSettled([settledPromise(), settledPromise({ fail: true })]).then((v) =>
+    PetroPromise.allSettled([settledPromise(), settledPromise({ fail: true })]).then((v) =>
       expect(v).toEqual([
         { status: 'fulfilled', value: DEFAULT_VALUE },
         { status: 'rejected', reason: DEFAULT_VALUE },
@@ -120,14 +119,13 @@ describe('.allSettled', () => {
 
 describe('.race', () => {
   it('returns first settled promise on race', () => {
-    return PetroPromise.race([
-      settledPromise({ value: 'bread' }),
-      settledPromise({ value: 'soup' }),
-    ]).then((v) => expect(v).toEqual('bread'));
+    PetroPromise.race([settledPromise({ value: 'bread' }), settledPromise({ value: 'soup' })]).then(
+      (v) => expect(v).toEqual('bread')
+    );
   });
 
   it('returns first settled promise on race with failing promises', () => {
-    return PetroPromise.race([
+    PetroPromise.race([
       settledPromise({ fail: true, value: 'bread' }),
       settledPromise({ fail: true, value: 'soup' }),
     ]).catch((v) => expect(v).toEqual('bread'));
@@ -136,14 +134,13 @@ describe('.race', () => {
 
 describe('.any', () => {
   it('returns first fullfilled promise', () => {
-    return PetroPromise.any([
-      settledPromise({ value: 'bread' }),
-      settledPromise({ value: 'soup' }),
-    ]).then((v: any) => expect(v).toEqual('bread'));
+    PetroPromise.any([settledPromise({ value: 'bread' }), settledPromise({ value: 'soup' })]).then(
+      (v: any) => expect(v).toEqual('bread')
+    );
   });
 
   it('returns errors for failed promises', () => {
-    return PetroPromise.any([
+    PetroPromise.any([
       settledPromise({ fail: true, value: 'bread' }),
       settledPromise({ fail: true, value: 'soup' }),
     ]).catch((e: { errors: any }) => expect(e.errors).toEqual(['bread', 'soup']));
@@ -153,7 +150,7 @@ describe('.any', () => {
 function settledPromise({
   value = DEFAULT_VALUE,
   fail = false,
-}: { value?: any; fail?: boolean } = {}): Promise<any> {
+}: { value?: any; fail?: boolean } = {}) {
   return new PetroPromise((resolve, reject) => {
     fail ? reject(value) : resolve(value);
   });
